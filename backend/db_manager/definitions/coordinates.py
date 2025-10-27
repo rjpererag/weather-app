@@ -1,10 +1,7 @@
-# database/models/coordinates.py
-"""Coordinates model definition."""
-
 import uuid
 from sqlalchemy import Column, String, Numeric
 from sqlalchemy.dialects.postgresql import UUID
-from .config import Base
+from ..config import Base
 
 
 class Coordinates(Base):

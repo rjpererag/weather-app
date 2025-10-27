@@ -1,26 +1,16 @@
-# database/repositories/coordinates_repository.py
-"""Repository pattern for Coordinates CRUD operations."""
-
 from typing import List, Optional
 from uuid import UUID
 from sqlalchemy.orm import Session
-from .coordinates_definition import Coordinates
-from .config import DatabaseConfig
+
+from .orm import ORM
+from ..definitions.coordinates import Coordinates
 
 
-class CoordinatesORM:
+class CoordinatesORM(ORM):
     """Handles all database operations for Coordinates."""
 
     def __init__(self, db_url: str):
-
-        self.db_config = DatabaseConfig(database_url=db_url)
-
-        self.session = None
-        self._should_close_session = self.session is None
-
-    def _get_session(self) -> Session:
-        """Get the session to use for operations."""
-        return self.db_config.get_session()
+        super().__init__(db_url)
 
     def create(self, city_name: str, longitude: float, latitude: float) -> Coordinates:
         session = self._get_session()

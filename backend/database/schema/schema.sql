@@ -35,9 +35,11 @@ CREATE TABLE IF NOT EXISTS transactions(
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     payload JSON NOT NULL,
     status_id NUMERIC NOT NULL,
+    raw_layer_id VARCHAR(500),
     results_id VARCHAR(500),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
 
-    CONSTRAINT fk_status_id FOREIGN KEY (status_id) REFERENCES status(id) ON DELETE CASCADE,
-    CONSTRAINT fk_results_id FOREIGN KEY (results_id) REFERENCES processed_layer(id) ON DELETE CASCADE
+    CONSTRAINT fk_status_id FOREIGN KEY (status_id) REFERENCES status(id) ON DELETE CASCADE
+--    CONSTRAINT fk_raw_layer_id FOREIGN KEY (raw_layer_id) REFERENCES raw_layer(id) ON DELETE CASCADE,
+--    CONSTRAINT fk_results_id FOREIGN KEY (results_id) REFERENCES processed_layer(id) ON DELETE CASCADE
 );

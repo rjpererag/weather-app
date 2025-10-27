@@ -10,12 +10,15 @@ class TransactionsORM(ORM):
     def __init__(self, db_url: str):
         super().__init__(db_url)
 
+
     def create(self, payload: dict, status_id) -> Transaction:
         session = self._get_session()
         try:
             transaction = Transaction(
                 payload=payload,
                 status_id=status_id,
+                results_id=payload.get("results_id"),
+                raw_layer_id=payload.get("raw_layer_id"),
             )
             session.add(transaction)
             if self._should_close_session:

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, JSON, TIMESTAMP
+from sqlalchemy import Column, String, JSON, TIMESTAMP, text
 from ..config import Base
 
 
@@ -8,7 +8,7 @@ class RawLayer(Base):
 
     id = Column(String(500), primary_key=True)
     api_response = Column(JSON, nullable=False)
-    created_at = Column(TIMESTAMP, nullable=False)
+    created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
 
     def __repr__(self):
         return (

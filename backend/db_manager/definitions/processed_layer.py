@@ -1,6 +1,7 @@
-from sqlalchemy import Column, String, JSON, TIMESTAMP
+from sqlalchemy import Column, String, JSON, TIMESTAMP, ForeignKey, text
 from sqlalchemy.dialects.postgresql import UUID
 from ..config import Base
+from ..definitions import Coordinates, RawLayer
 
 
 class ProcessedLayer(Base):
@@ -8,11 +9,12 @@ class ProcessedLayer(Base):
     __tablename__ = "processed_layer"
 
     id = Column(String(500), primary_key=True)
-    coordinates_id = Column(UUID(as_uuid=True), foreign_key="coordinates_id", nullable=False)
+    raw_layer_id = Column(String(500), ForeignKey("raw_layer.id"), nullable=False)
+    coordinates_id = Column(UUID(as_uuid=True), ForeignKey("coordinates.id"), nullable=False)
     general_statistics = Column(JSON, nullable=False)
     weather_statistics = Column(JSON, nullable=False)
     precipitation_statistics = Column(JSON, nullable=False)
-    created_at = Column(TIMESTAMP, nullable=False)
+    created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
 
     def __repr__(self):
         return (

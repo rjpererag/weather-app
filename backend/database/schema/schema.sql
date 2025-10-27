@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS transactions(
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     payload JSON NOT NULL,
     status_id NUMERIC NOT NULL,
-    results_id VARCHAR(500) NOT NULL,
+    results_id VARCHAR(500),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
 
     CONSTRAINT fk_status_id FOREIGN KEY (status_id) REFERENCES status(id) ON DELETE CASCADE,

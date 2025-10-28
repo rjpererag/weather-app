@@ -1,6 +1,10 @@
 from flask import Flask,jsonify
 
-from .pipeline.functions import (fetch_coordinates, generate_ids, create_new_transaction, get_transaction_by_id)
+from .pipeline.functions import (
+    fetch_coordinates, generate_ids, create_new_transaction, get_transaction_by_id,
+    process_transaction,
+    )
+from .tasks import process_weather_transaction
 from .db_manager.settings import DBSettings, create_db_url
 
 
@@ -76,7 +80,7 @@ def post_weather_data(latitude: str, longitude: str, start_date: str, end_date: 
             return jsonify({"error": "bad request, no transaction created"}), 400
 
         payload = {**payload, **transaction}
-        return jsonify({"id_to_monitor": payload.get("id")}), 200
+        process_weather_transaction.delay(db_url, payload)
 
     except Exception:
         return jsonify({"error": f"Error creating new transaction"}), 500

@@ -54,3 +54,30 @@ class TransactionsORM(ORM):
         finally:
             if self._should_close_session:
                 session.close()
+
+
+    def update_status_id(self, t_id: UUID | str, new_status_id: int) -> Optional[Transaction]:
+        """Get a processed layer id that maps to the processed data"""
+        session = self._get_session()
+        try:
+            transaction = session.query(Transaction).filter(
+                Transaction.id == t_id
+            ).first()
+
+            if not transaction:
+                raise ValueError(f"Transaction {t_id} not found")
+
+            transaction.status_id = new_status_id
+
+            session.commit()
+            session.refresh(transaction)
+            return transaction
+
+        except Exception as e:
+            if self._should_close_session:
+                session.rollback()
+                raise e
+
+        finally:
+            if self._should_close_session:
+                session.close()

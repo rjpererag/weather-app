@@ -21,7 +21,6 @@ class ProcessedLayerORM(ORM):
             processed_layer = ProcessedLayer(
                 id=payload.get("results_id"),
                 raw_layer_id=payload.get("raw_layer_id"),
-                coordinates_id=payload.get("coordinates_id"),
                 general_statistics=payload.get("general_stats"),
                 weather_statistics=payload.get("weather_stats"),
                 precipitation_statistics=payload.get("precipitation_stats"),

@@ -23,3 +23,13 @@ class Transaction(Base):
             f"raw_layer_id='{self.raw_layer_id}', "
             f"created_at={self.created_at})>"
         )
+
+    def to_dict(self):
+        return {
+            "id": str(self.id),
+            "payload": self.payload,
+            "status_id": float(self.status_id) if self.status_id is not None else None,
+            "results_id": self.results_id,
+            "raw_layer_id": self.raw_layer_id,
+            "created_at": str(self.created_at)
+        }

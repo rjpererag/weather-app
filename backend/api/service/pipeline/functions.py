@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from ..db_manager.models import TransactionsORM
 from ..db_manager.definitions import Transaction
 from ..db_manager.handlers import *
@@ -23,7 +25,7 @@ def generate_ids(payload: dict) -> dict:
 		"results_id": ids.get("results_id"),
 	}
 
-def create_new_transaction(db_url: str, payload: dict) -> Transaction:
+def create_new_transaction(db_url: str, payload: dict) -> dict:
 	transactions_orm = TransactionsORM(db_url=db_url)
 	transaction = transactions_orm.create(payload=payload, status_id=0)
 
@@ -32,10 +34,17 @@ def create_new_transaction(db_url: str, payload: dict) -> Transaction:
 	print(f"Monitoring transaction {transaction.id}")
 	print(f"Status: {transaction.status_id}")
 
+	return transaction.to_dict()
+
+
+def get_transaction_by_id(db_url: str, id_: UUID | str) -> dict:
+	transactions_orm = TransactionsORM(db_url=db_url)
+	transaction = transactions_orm.get_by_id(t_id=id_)
+
 	return transaction
 
 
-def monitor_layers(db_url: str, payload: dict) -> dict:
+def process_transaction(db_url: str, payload: dict) -> dict:
 	# TODO: Chane to use logs
 	print("Checking on Raw Layer Table")
 	rl_handler = RawLayerHandler(db_url=db_url)
@@ -61,8 +70,8 @@ def get_results(db_url: str, payload: dict) -> dict:
 	payload = {**payload, **ids_generated}
 
 	transaction = create_new_transaction(db_url=db_url, payload=payload)
-	payload = {**payload, "transaction": transaction}
+	payload = {**payload, **transaction}
 
-	results = monitor_layers(db_url=db_url, payload=payload)
+	results = process_transaction(db_url=db_url, payload=payload)
 
 	return results

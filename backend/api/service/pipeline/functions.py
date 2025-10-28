@@ -1,7 +1,8 @@
 from uuid import UUID
 
 from ..db_manager.models import TransactionsORM
-from ..db_manager.definitions import Transaction
+from ..db_manager.models import ProcessedLayerORM
+from ..db_manager.definitions import Transaction, ProcessedLayer
 from ..db_manager.handlers import *
 from ..utils import IDGenerator
 
@@ -61,18 +62,17 @@ def get_transaction_by_id(db_url: str, id_: UUID | str) -> dict:
 
 
 def process_transaction(db_url: str, payload: dict) -> dict:
-	print("PROCESSING TRANSACTION")
 	try:
 		# TODO: Chane to use logs
 		print("Checking on Raw Layer Table")
 		rl_handler = RawLayerHandler(db_url=db_url)
 		raw_layer_record = rl_handler.monitor(payload=payload)
-		payload["raw_layer"] = raw_layer_record
+		payload["raw_layer"] = raw_layer_record.to_dict() if raw_layer_record else None
 
 		print("Checking on Processed Layer Table")
 		pl_handler = ProcessedLayerHandler(db_url=db_url)
 		processed_layer_record = pl_handler.monitor(payload=payload)
-		payload["processed_layer"] = processed_layer_record
+		payload["processed_layer"] = processed_layer_record.to_dict() if processed_layer_record else None
 		print("Process finished")
 
 		print("Updating transaction status")
@@ -83,11 +83,17 @@ def process_transaction(db_url: str, payload: dict) -> dict:
 		print(f"Results Available. Fetch results using: {processed_layer_record.id}")
 
 	except Exception as e:
+		print(str(e))
 		updated_transaction = update_transaction_by_id(
 			db_url=db_url, payload=payload, new_status_id=2
 		)
 
 	return {**payload, **updated_transaction}
+
+def get_results_by_id(db_url: str, pl_id: UUID | str) -> dict:
+	orm = ProcessedLayerORM(db_url=db_url)
+	results = orm.get_by_id(pl_id=pl_id)
+	return results.to_dict()
 
 
 # TODO: MUST INCLUDE A FUNCTION TO UPDATE THE STATUS - WE MUST USE TRY - EXCEPT TO HANDLE ERROR

@@ -36,7 +36,7 @@ class ProcessedLayerHandler:
         return record
 
 
-    def monitor(self, payload: dict):
+    def monitor(self, payload: dict) -> ProcessedLayer:
         db_result = self.get_from_db(pl_id=payload.get("results_id"))
         if db_result:
             print("Returning from DB")

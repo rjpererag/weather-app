@@ -37,7 +37,7 @@ class RawLayerHandler:
         return record
 
 
-    def monitor(self, payload: dict):
+    def monitor(self, payload: dict) -> RawLayer:
         db_result = self.get_from_db(rl_id=payload.get("raw_layer_id"))
         if db_result:
             print("Returning from DB")

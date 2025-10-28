@@ -71,6 +71,7 @@ class TransactionsORM(ORM):
 
             session.commit()
             session.refresh(transaction)
+            print("Successfully updated status")
             return transaction
 
         except Exception as e:

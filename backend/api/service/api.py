@@ -2,16 +2,27 @@ from flask import Flask,jsonify
 
 from .pipeline.functions import (
     fetch_coordinates, generate_ids, create_new_transaction, get_transaction_by_id,
-    process_transaction,
+    get_results_by_id
     )
 from .tasks import process_weather_transaction
 from .db_manager.settings import DBSettings, create_db_url
 
+from backend.api.service.celery_config import celery as celery_app
 
 app = Flask(__name__)
 
 db_settings = DBSettings(host="localhost")
 db_url = create_db_url(settings=db_settings)
+
+def init_celery(app, celery):
+    class ContextTask(celery.Task):
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return self.run(*args, **kwargs)
+    celery.Task = ContextTask
+    return celery
+
+# celery_app = init_celery(app, celery_app)
 
 # GET METHODS -------------------------------------------------------------------------------
 @app.route('/coordinates/<string:city_name>', methods=["GET"])
@@ -56,6 +67,30 @@ def get_transaction_status(transaction_id: str):
     except Exception:
         return jsonify({"error": f"{transaction_id} status unavailable."}), 500
 
+
+@app.route('/search-results/<string:transaction_id>', methods=["GET"])
+def search_results(transaction_id: str):
+
+    try:
+
+        if not isinstance(transaction_id, str):
+            return jsonify({"error": "transaction_id must be a string"}), 400
+
+        transaction = get_transaction_by_id(
+            db_url=db_url,
+            id_=transaction_id
+        )
+
+        # TODO: If not transaction
+        results = get_results_by_id(
+            db_url=db_url,
+            pl_id=transaction.results_id)
+
+        return jsonify(results), 200
+
+    except Exception:
+        ...
+
 # POST METHODS ------------------------------------------------------------------------------
 @app.route(
     '/weather-data/<string:latitude>/<string:longitude>/<string:start_date>/<string:end_date>',
@@ -80,10 +115,12 @@ def post_weather_data(latitude: str, longitude: str, start_date: str, end_date: 
             return jsonify({"error": "bad request, no transaction created"}), 400
 
         payload = {**payload, **transaction}
-        process_weather_transaction.delay(db_url, payload)
+        task = process_weather_transaction.delay(db_url, payload)
 
-    except Exception:
-        return jsonify({"error": f"Error creating new transaction"}), 500
+        return {"id_to_monitor": transaction.get("id")}, 200
+
+    except Exception as e:
+        return jsonify({"error": f"Error creating new transaction. {str(e)}"}), 500
 
 # @app.route(
 #     '/statistics/<str:latitude>/<str:longitude>/<str:start_date>/<str:end_date>',

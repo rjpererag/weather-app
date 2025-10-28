@@ -3,7 +3,7 @@ from uuid import UUID
 
 from .orm import ORM
 from ..definitions.processed_layer import ProcessedLayer
-from backend.utils import StatisticsGenerator
+from ...utils import StatisticsGenerator
 
 class ProcessedLayerORM(ORM):
     """Handles all database operations for Coordinates."""

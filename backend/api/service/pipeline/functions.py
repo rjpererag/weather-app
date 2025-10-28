@@ -1,7 +1,7 @@
-from backend.db_manager.models import TransactionsORM
-from backend.db_manager.definitions import Transaction
-from backend.db_manager.handlers import *
-from backend.utils import IDGenerator
+from ..db_manager.models import TransactionsORM
+from ..db_manager.definitions import Transaction
+from ..db_manager.handlers import *
+from ..utils import IDGenerator
 
 def fetch_coordinates(db_url: str, payload: dict) -> dict:
 	coordinates_handler = CoordinatesHandler(db_url=db_url)

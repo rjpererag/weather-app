@@ -1,6 +1,6 @@
-from backend.db_manager.models import RawLayerORM
-from backend.db_manager.definitions import RawLayer
-from backend.api_open_meteo import OpenMeteoAPI
+from ...db_manager.models import RawLayerORM
+from ...db_manager.definitions import RawLayer
+from ...api_open_meteo import OpenMeteoAPI
 
 import numbers
 

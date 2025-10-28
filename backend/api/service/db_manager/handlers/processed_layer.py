@@ -1,6 +1,6 @@
-from backend.db_manager.models import ProcessedLayerORM
-from backend.db_manager.definitions import ProcessedLayer
-from backend.utils.stats_generator import StatisticsGenerator
+from ...db_manager.models import ProcessedLayerORM
+from ...db_manager.definitions import ProcessedLayer
+from ...utils.stats_generator import StatisticsGenerator
 
 import numbers
 

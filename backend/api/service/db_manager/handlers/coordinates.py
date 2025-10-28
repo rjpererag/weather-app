@@ -1,6 +1,6 @@
-from backend.api_open_meteo import OpenMeteoAPI
-from backend.db_manager.models import CoordinatesORM
-from backend.db_manager.definitions import Coordinates
+from ...api_open_meteo import OpenMeteoAPI
+from ...db_manager.models import CoordinatesORM
+from ...db_manager.definitions import Coordinates
 
 import numbers
 

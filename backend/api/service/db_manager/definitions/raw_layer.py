@@ -16,3 +16,10 @@ class RawLayer(Base):
             f"api_response='{self.api_response}', "
             f"created_at={self.created_at})>"
         )
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "api_response": self.api_response,
+            "created_at": str(self.created_at),
+        }

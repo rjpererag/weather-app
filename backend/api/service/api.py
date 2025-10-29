@@ -65,7 +65,6 @@ def search_results(transaction_id: str):
     except Exception:
         return jsonify({"error": f"{transaction_id} results unavailable."}), 500
 
-# TODO: MOVE TO DEDICATED FUNCTION SCRIPT
 @app.route(
     '/city-stats/<string:city_name>/<string:start_date>/<string:end_date>',
     methods=['GET']
@@ -75,51 +74,21 @@ def get_city_stats(
         start_date: str,
         end_date: str
 ):
-    print(f"GETTING {city_name} {start_date} {end_date}")
-    coordinates = get_coordinates_func(db_url=db_url, city_name=city_name)
-    if coordinates.get("error"):
-        return jsonify(coordinates), 400
-
-    latitude = coordinates.get("latitude")
-    longitude = coordinates.get("longitude")
-
-    monitor_id = None
-    if latitude and longitude:
-        transaction = post_weather_data_func(
+    try:
+        city_stats = get_city_stats_func(
             db_url=db_url,
-            latitude=latitude,
-            longitude=longitude,
+            city_name=city_name,
             start_date=start_date,
             end_date=end_date,
         )
-        monitor_id = transaction.get("id")
 
-    if monitor_id:
-        results = None
-        print("Waiting for results")
-        while True:
-            status_json = get_transaction_status_func(
-                db_url=db_url,
-                transaction_id=monitor_id
-            )
+        if city_stats.get("error"):
+            return jsonify(city_stats), 400
 
-            status = status_json.get("status", "failed")
+        return jsonify(city_stats), 200
 
-            if status == "failed":
-                break
-
-            elif status == "ready":
-                print("Collecting results")
-                results = search_results_func(
-                    db_url=db_url,
-                    transaction_id=monitor_id
-                )
-                break
-            sleep(1)
-
-        return jsonify({city_name: results}), 200
-
-    return jsonify({city_name:"results not found"}), 500
+    except Exception as e :
+        return jsonify({"error": f"error getting stats for {city_name} city stats. {str(e)}"}), 500
 
 
 # POST METHODS ------------------------------------------------------------------------------

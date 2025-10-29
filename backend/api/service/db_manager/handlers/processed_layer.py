@@ -2,6 +2,8 @@ from ...db_manager.models import ProcessedLayerORM
 from ...db_manager.definitions import ProcessedLayer
 from ...utils.stats_generator import StatisticsGenerator
 
+import json
+
 import numbers
 
 class ProcessedLayerHandler:
@@ -20,9 +22,10 @@ class ProcessedLayerHandler:
         return None
 
     def _get_statistics(self, payload: dict) -> dict:
+        print("Getting statistics")
+        weather = self.stats_generator.get_weather(data=payload)
+        precipitation = self.stats_generator.get_precipitation(data=payload)
         general = self.stats_generator.get_general(data=payload)
-        weather = self.stats_generator.get_general(data=payload)
-        precipitation = self.stats_generator.get_general(data=payload)
 
         return {
             **payload,

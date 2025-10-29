@@ -1,0 +1,85 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+
+# Byte-compiled / optimized / DLL files
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.venv*/
+venv*/
+env*/
+
+# Build and distribution directories
+build/
+dist/
+*.egg-info/
+.eggs/
+wheels/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Logs
+*.log
+logs/
+*.out
+
+# Unit test / coverage reports
+.coverage
+.tox/
+.nox/
+.cache/
+.pytest_cache/
+coverage.xml
+htmlcov/
+
+# IDE / editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+*.env
+.env.*
+*.ini
+
+# Temporary or local data
+tmp/
+*.tmp
+*.bak
+*.swp
+
+# Docker-related
+docker-compose.override.yml
+Dockerfile.dev
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Data or output files
+data/
+output/
+results/
+*.csv
+*.tsv
+*.xlsx
+*.parquet
+*.db
+*.sqlite3

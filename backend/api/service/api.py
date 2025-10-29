@@ -11,7 +11,7 @@ from backend.api.service.celery_config import celery as celery_app
 
 app = Flask(__name__)
 
-db_settings = DBSettings(host="localhost")
+db_settings = DBSettings()
 db_url = create_db_url(settings=db_settings)
 
 def init_celery(app, celery):
@@ -25,6 +25,11 @@ def init_celery(app, celery):
 # celery_app = init_celery(app, celery_app)
 
 # GET METHODS -------------------------------------------------------------------------------
+
+@app.route('/test', methods=["GET"])
+def get_test():
+    return jsonify({"message": "Success"}), 200
+
 @app.route('/coordinates/<string:city_name>', methods=["GET"])
 def get_coordinates(city_name: str):
     try:
@@ -36,8 +41,8 @@ def get_coordinates(city_name: str):
             payload={"city_name": city_name.lower().strip()}
         )
         return jsonify(coordinates), 200
-    except Exception:
-        return jsonify({"error": f"{city_name} coordinates unavailable."}), 500
+    except Exception as e :
+        return jsonify({"error": f"{city_name} coordinates unavailable. {str(e)}"}), 500
 
 
 @app.route('/get-status/<string:transaction_id>', methods=["GET"])

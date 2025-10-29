@@ -11,6 +11,75 @@ services:
       - ".env"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: weather-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  celery-worker:
+    build:
+      context: .
+      dockerfile: backend/api/Dockerfile
+    container_name: weather-celery-worker
+    restart: unless-stopped
+    env_file:
+      - ".env"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    command: celery -A backend.api.service.celery_worker.celery worker --loglevel=info --concurrency=4
+    depends_on:
+      - redis
+      - db
+    networks:
+      - app-network
+    volumes:
+      - ./backend:/app/backend
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/api/Dockerfile
+    container_name: weather-api
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    env_file:
+      - ".env"
+    environment:
+      - FLASK_ENV=production
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+    volumes:
+      - ./backend:/app/backend
 
 volumes:
   postgres_data:
+
+networks:
+  app-network:
+    driver: bridge

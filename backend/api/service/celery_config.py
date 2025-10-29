@@ -1,10 +1,13 @@
+import os
 from celery import Celery
 
 def create_celery_app():
+    redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+
     app = Celery(
         'weather_api',
-        broker='redis://localhost:6379/0',
-        backend='redis://localhost:6379/1',
+        broker=redis_url,
+        backend=redis_url.replace('/0', '/1'),  # Use different DB for backend
     )
 
     app.conf.update(

@@ -1,4 +1,4 @@
-from service.api import app
+from .service.api import app
 
 
 def main() -> None:

@@ -1,13 +1,10 @@
 from flask import Flask,jsonify
 
-from .pipeline.functions import (
-    fetch_coordinates, generate_ids, create_new_transaction, get_transaction_by_id,
-    get_results_by_id
-    )
-from .tasks import process_weather_transaction
-from .db_manager.settings import DBSettings, create_db_url
-
 from backend.api.service.celery_config import celery as celery_app
+
+from .db_manager.settings import DBSettings, create_db_url
+from .api_funcs import *
+
 
 app = Flask(__name__)
 
@@ -28,18 +25,21 @@ def init_celery(app, celery):
 
 @app.route('/test', methods=["GET"])
 def get_test():
-    return jsonify({"message": "Success"}), 200
+    result = get_test_func()
+    return jsonify(result), 200
+
+@app.route('/test2', methods=["GET"])
+def get_test_2():
+    result = get_test_func()
+    return jsonify(result), 200
 
 @app.route('/coordinates/<string:city_name>', methods=["GET"])
 def get_coordinates(city_name: str):
     try:
-        if not isinstance(city_name, str):
-            return jsonify({"error": "city_name must be a string"}), 400
+        coordinates = get_coordinates_func(db_url=db_url, city_name=city_name)
+        if coordinates.get("error"):
+            return jsonify(coordinates), 400
 
-        coordinates = fetch_coordinates(
-            db_url=db_url,
-            payload={"city_name": city_name.lower().strip()}
-        )
         return jsonify(coordinates), 200
     except Exception as e :
         return jsonify({"error": f"{city_name} coordinates unavailable. {str(e)}"}), 500
@@ -47,54 +47,26 @@ def get_coordinates(city_name: str):
 
 @app.route('/get-status/<string:transaction_id>', methods=["GET"])
 def get_transaction_status(transaction_id: str):
-
     try:
+        status = get_transaction_status_func(db_url=db_url, transaction_id=transaction_id)
+        if status.get("error"):
+            return jsonify(status), 400
 
-        if not isinstance(transaction_id, str):
-            return jsonify({"error": "transaction_id must be a string"}), 400
-
-        transaction = get_transaction_by_id(
-            db_url=db_url,
-            id_=transaction_id
-        )
-
-        t_status = str(transaction.status_id)
-
-        if  t_status == "0":
-            status = "processing"
-        elif t_status == "1":
-            status = "ready"
-        elif t_status == "2":
-            status = "failed"
-        else:
-            status = "unknown"
-        return jsonify({"status": status}), 200
+        return jsonify(status), 200
     except Exception:
         return jsonify({"error": f"{transaction_id} status unavailable."}), 500
 
 
 @app.route('/search-results/<string:transaction_id>', methods=["GET"])
 def search_results(transaction_id: str):
-
     try:
-
-        if not isinstance(transaction_id, str):
-            return jsonify({"error": "transaction_id must be a string"}), 400
-
-        transaction = get_transaction_by_id(
-            db_url=db_url,
-            id_=transaction_id
-        )
-
-        # TODO: If not transaction
-        results = get_results_by_id(
-            db_url=db_url,
-            pl_id=transaction.results_id)
-
+        results = search_results_func(db_url=db_url, transaction_id=transaction_id)
+        if results.get("error"):
+            return jsonify(results), 400
         return jsonify(results), 200
 
     except Exception:
-        ...
+        return jsonify({"error": f"{transaction_id} results unavailable."}), 500
 
 # POST METHODS ------------------------------------------------------------------------------
 @app.route(
@@ -102,25 +74,17 @@ def search_results(transaction_id: str):
     methods=['POST']
 )
 def post_weather_data(latitude: str, longitude: str, start_date: str, end_date: str):
-
     try:
-        payload = {
-            "latitude": latitude,
-            "longitude": longitude,
-            "start_date": start_date,
-            "end_date": end_date
-        }
+        transaction = post_weather_data_func(
+            db_url=db_url,
+            latitude=latitude,
+            longitude=longitude,
+            start_date=start_date,
+            end_date=end_date
+        )
 
-        ids = generate_ids(payload=payload)
-        payload = {**payload, **ids}
-
-        transaction = create_new_transaction(db_url=db_url, payload=payload)
-
-        if not transaction:
-            return jsonify({"error": "bad request, no transaction created"}), 400
-
-        payload = {**payload, **transaction}
-        task = process_weather_transaction.delay(db_url, payload)
+        if transaction.get("error"):
+            return jsonify(transaction), 400
 
         return {"id_to_monitor": transaction.get("id")}, 200
 

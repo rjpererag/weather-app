@@ -114,6 +114,7 @@ def get_city_stats(
                     transaction_id=monitor_id
                 )
                 break
+            sleep(1)
 
         return jsonify({city_name: results}), 200
 
@@ -142,31 +143,3 @@ def post_weather_data(latitude: str, longitude: str, start_date: str, end_date: 
 
     except Exception as e:
         return jsonify({"error": f"Error creating new transaction. {str(e)}"}), 500
-
-# @app.route(
-#     '/statistics/<str:latitude>/<str:longitude>/<str:start_date>/<str:end_date>',
-#     methods=['POST']
-# )
-# def post_statistics():
-#     return ...
-#
-# @app.route(
-#     '/statistics/weather/<str:latitude>/<str:longitude>/<str:start_date>/<str:end_date>',
-#     methods=['POST']
-# )
-# def post_statistics_weather():
-#     return ...
-#
-# @app.route(
-#     '/statistics/precipitation/<str:latitude>/<str:longitude>/<str:start_date>/<str:end_date>',
-#     methods=['POST']
-# )
-# def post_statistics_precipitation():
-#     return ...
-#
-# @app.route(
-#     '/statistics/general/<str:latitude>/<str:longitude>/<str:start_date>/<str:end_date>',
-#     methods=['POST']
-# )
-# def post_statistics_general():
-#     return ...

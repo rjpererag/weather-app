@@ -9,7 +9,9 @@ def search_results_func(db_url: str, transaction_id: str) -> dict:
         id_=transaction_id
     )
 
-    # TODO: If not transaction
+    if not transaction:
+        return {"error": "transaction not found"}
+
     results = get_results_by_id(
         db_url=db_url,
         pl_id=transaction.results_id

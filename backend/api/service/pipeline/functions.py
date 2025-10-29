@@ -4,18 +4,23 @@ from ..db_manager.models import TransactionsORM
 from ..db_manager.models import ProcessedLayerORM
 from ..db_manager.definitions import Transaction, ProcessedLayer
 from ..db_manager.handlers import *
-from ..utils import IDGenerator
+from ..utils import IDGenerator, logger
 
 def fetch_coordinates(db_url: str, payload: dict) -> dict:
-	coordinates_handler = CoordinatesHandler(db_url=db_url)
-	coordinates = coordinates_handler.get_coordinates(city_name=payload.get("city_name"))
+	logger.info(f"Getting coordinates for {payload.get('city_name')}")
+	try:
+		coordinates_handler = CoordinatesHandler(db_url=db_url)
+		coordinates = coordinates_handler.get_coordinates(city_name=payload.get("city_name"))
 
-	return {
-		"city_name": coordinates.get("city_name"),
-		"coordinates_id": str(coordinates.get("coordinates_id")),
-		"latitude": coordinates.get("latitude"),
-		"longitude": coordinates.get("longitude"),
-	}
+		return {
+			"city_name": coordinates.get("city_name"),
+			"coordinates_id": str(coordinates.get("coordinates_id")),
+			"latitude": coordinates.get("latitude"),
+			"longitude": coordinates.get("longitude"),
+		}
+	except:
+		logger.error(f"Failed getting coordinates for {payload.get('city_name')}")
+		return {"error": f"coordinates not found"}
 
 def generate_ids(payload: dict) -> dict:
 	id_generator = IDGenerator(payload=payload)
@@ -43,15 +48,16 @@ def update_transaction_by_id(db_url: str, payload: dict, new_status_id: int) -> 
 
 
 def create_new_transaction(db_url: str, payload: dict) -> dict:
-	transactions_orm = TransactionsORM(db_url=db_url)
-	transaction = transactions_orm.create(payload=payload, status_id=0)
+	try:
+		transactions_orm = TransactionsORM(db_url=db_url)
+		transaction = transactions_orm.create(payload=payload, status_id=0)
 
-	# TODO: THIS MUST BE LOGS
-	print(f"New transaction created, id to monitor = {transaction.id}")
-	print(f"Monitoring transaction {transaction.id}")
-	print(f"Status: {transaction.status_id}")
-
-	return transaction.to_dict()
+		# TODO: THIS MUST BE LOGS
+		logger.info(f"	New transaction created, id to monitor = {transaction.id}")
+		return transaction.to_dict()
+	except:
+		logger.error(f"	Failed creating new transaction")
+		return {"error": "Failed creating new transaction"}
 
 
 def get_transaction_by_id(db_url: str, id_: UUID | str) -> dict:
@@ -63,30 +69,36 @@ def get_transaction_by_id(db_url: str, id_: UUID | str) -> dict:
 
 def process_transaction(db_url: str, payload: dict) -> dict:
 	try:
-		# TODO: Chane to use logs
-		print("Checking on Raw Layer Table")
+		logger.info("	Checking on Raw Layer Table")
 		rl_handler = RawLayerHandler(db_url=db_url)
 		raw_layer_record = rl_handler.monitor(payload=payload)
 		payload["raw_layer"] = raw_layer_record.to_dict() if raw_layer_record else None
 
-		print("Checking on Processed Layer Table")
+		logger.info("	Checking on Processed Layer Table")
 		pl_handler = ProcessedLayerHandler(db_url=db_url)
 		processed_layer_record = pl_handler.monitor(payload=payload)
 		payload["processed_layer"] = processed_layer_record.to_dict() if processed_layer_record else None
-		print("Process finished")
 
-		print("Updating transaction status")
+		logger.info("	Monitoring finished")
+
+		logger.info("	Updating transaction status")
 		updated_transaction = update_transaction_by_id(
 			db_url=db_url, payload=payload, new_status_id=1
 		)
 
-		print(f"Results Available. Fetch results using: {processed_layer_record.id}")
+		logger.info(f"	Results Available. Fetch results using: {processed_layer_record.id}")
 
 	except Exception as e:
-		print(str(e))
-		updated_transaction = update_transaction_by_id(
-			db_url=db_url, payload=payload, new_status_id=2
-		)
+		try:
+			logger.error("	Failed processing transaction")
+			updated_transaction = update_transaction_by_id(
+				db_url=db_url, payload=payload, new_status_id=2
+			)
+			return {"error": "Failed processing transaction"}
+
+		except:
+			logger.error(f"	Failed updating failed transaction")
+			return {"error": "Failed updating failed transaction"}
 
 	return {**payload, **updated_transaction}
 

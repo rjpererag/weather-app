@@ -1,6 +1,7 @@
 from ...api_open_meteo import OpenMeteoAPI
 from ...db_manager.models import CoordinatesORM
 from ...db_manager.definitions import Coordinates
+from ...utils import logger
 
 import numbers
 
@@ -32,7 +33,7 @@ class CoordinatesHandler:
 
         db_result = self.get_from_db(city_name=city_name)
         if db_result:
-            print("Coordinates found in db")
+            logger.info("   Coordinates found in db")
             return {
                 "coordinates_id": db_result.id,
                 "city_name": db_result.city_name,
@@ -40,7 +41,7 @@ class CoordinatesHandler:
                 "longitude": float(db_result.longitude),
             }
 
-        print("Calling Geolocation service")
+        logger.info("   Calling Geolocation service")
         lat, lon = self.get_from_api(city_name=city_name)
         record = self.insert_in_db(city_name=city_name, latitude=lat, longitude=lon)
         return {

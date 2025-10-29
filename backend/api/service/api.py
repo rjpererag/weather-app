@@ -65,6 +65,7 @@ def search_results(transaction_id: str):
     except Exception:
         return jsonify({"error": f"{transaction_id} results unavailable."}), 500
 
+# TODO: MOVE TO DEDICATED FUNCTION SCRIPT
 @app.route(
     '/city-stats/<string:city_name>/<string:start_date>/<string:end_date>',
     methods=['GET']

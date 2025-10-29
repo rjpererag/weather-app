@@ -13,6 +13,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+RUN mkdir -p /app/logs
+
 EXPOSE 5001
 
 CMD ["python", "-m", "backend.api.entrypoint"]

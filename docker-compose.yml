@@ -1,4 +1,10 @@
 services:
+  init:
+    build:
+      context: .
+      dockerfile: backend/init/Dockerfile
+    container_name: weather-api-init
+
   db:
     build:
       context: ./backend/database
@@ -46,6 +52,7 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
     command: celery -A backend.api.service.celery_worker.celery worker --loglevel=info --concurrency=4
     depends_on:
+      - init
       - redis
       - db
     networks:
@@ -68,6 +75,8 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
     depends_on:
+      init:
+        condition: service_completed_successfully
       db:
         condition: service_healthy
       redis:

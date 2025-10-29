@@ -1,4 +1,5 @@
 from flask import Flask,jsonify
+from time import sleep
 
 from backend.api.service.celery_config import celery as celery_app
 
@@ -28,10 +29,6 @@ def get_test():
     result = get_test_func()
     return jsonify(result), 200
 
-@app.route('/test2', methods=["GET"])
-def get_test_2():
-    result = get_test_func()
-    return jsonify(result), 200
 
 @app.route('/coordinates/<string:city_name>', methods=["GET"])
 def get_coordinates(city_name: str):
@@ -67,6 +64,61 @@ def search_results(transaction_id: str):
 
     except Exception:
         return jsonify({"error": f"{transaction_id} results unavailable."}), 500
+
+@app.route(
+    '/city-stats/<string:city_name>/<string:start_date>/<string:end_date>',
+    methods=['GET']
+)
+def get_city_stats(
+        city_name: str,
+        start_date: str,
+        end_date: str
+):
+    print(f"GETTING {city_name} {start_date} {end_date}")
+    coordinates = get_coordinates_func(db_url=db_url, city_name=city_name)
+    if coordinates.get("error"):
+        return jsonify(coordinates), 400
+
+    latitude = coordinates.get("latitude")
+    longitude = coordinates.get("longitude")
+
+    monitor_id = None
+    if latitude and longitude:
+        transaction = post_weather_data_func(
+            db_url=db_url,
+            latitude=latitude,
+            longitude=longitude,
+            start_date=start_date,
+            end_date=end_date,
+        )
+        monitor_id = transaction.get("id")
+
+    if monitor_id:
+        results = None
+        print("Waiting for results")
+        while True:
+            status_json = get_transaction_status_func(
+                db_url=db_url,
+                transaction_id=monitor_id
+            )
+
+            status = status_json.get("status", "failed")
+
+            if status == "failed":
+                break
+
+            elif status == "ready":
+                print("Collecting results")
+                results = search_results_func(
+                    db_url=db_url,
+                    transaction_id=monitor_id
+                )
+                break
+
+        return jsonify({city_name: results}), 200
+
+    return jsonify({city_name:"results not found"}), 500
+
 
 # POST METHODS ------------------------------------------------------------------------------
 @app.route(

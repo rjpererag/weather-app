@@ -69,10 +69,15 @@ def create_app() -> Flask:
         '/city-stats/<string:city_name>/<string:start_date>/<string:end_date>',
         methods=['GET']
     )
+    @app.route(
+        '/city-stats/<string:city_name>/<string:start_date>/<string:end_date>/<string:stats>',
+        methods=['GET']
+    )
     def get_city_stats(
             city_name: str,
             start_date: str,
-            end_date: str
+            end_date: str,
+            stats: str = None
     ):
         try:
             city_stats = get_city_stats_func(
@@ -83,9 +88,17 @@ def create_app() -> Flask:
             )
 
             if city_stats.get("error"):
-                return jsonify(city_stats), 400
+                return jsonify({city_name: city_stats}), 400
 
-            return jsonify(city_stats), 200
+            if stats:
+                city_stats_filtered = handle_statistics_filtering(stats=stats, city_stats=city_stats)
+
+                if city_stats_filtered.get("error"):
+                    return jsonify({city_name: city_stats}), 400
+
+                return jsonify({city_name: city_stats_filtered}), 200
+
+            return jsonify({city_name: city_stats}), 200
 
         except Exception as e :
             return jsonify({"error": f"error getting stats for {city_name} city stats. {str(e)}"}), 500

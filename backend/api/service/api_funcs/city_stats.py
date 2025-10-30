@@ -111,50 +111,17 @@ def get_city_stats_func(
 
     return results
 
-    # coordinates = get_coordinates_func(db_url=db_url, city_name=city_name)
-    # if coordinates.get("error"):
-    #     return coordinates
+def handle_statistics_filtering(stats: str, city_stats: dict) -> dict:
+    if stats == "general":
+        city_stats_filtered = city_stats.get("general_statistics", {})
 
-    # monitor_id = None
-    # if latitude and longitude:
-    #     transaction = post_weather_data_func(
-    #         db_url=db_url,
-    #         latitude=latitude,
-    #         longitude=longitude,
-    #         start_date=start_date,
-    #         end_date=end_date,
-    #     )
-    #
-    #     if transaction.get("error"):
-    #         return transaction
-    #
-    #     monitor_id = transaction.get("id")
+    elif stats == "weather":
+        city_stats_filtered = city_stats.get("weather_statistics", {})
 
-    # if monitor_id:
-    #     results = None
-    #     logger.error("Waiting for results")
-    #     start = datetime.now()
-    #
-    #     while True:
-    #         status_json = get_transaction_status_func(
-    #             db_url=db_url,
-    #             transaction_id=monitor_id
-    #         )
-    #
-    #         status = status_json.get("status", "failed")
-    #
-    #         if status == "failed":
-    #             break
-    #
-    #         elif status == "ready":
-    #             logger.info("Collecting results")
-    #             results = search_results_func(
-    #                 db_url=db_url,
-    #                 transaction_id=monitor_id
-    #             )
-    #             break
-    #
-    #         if datetime.now() - start > timedelta(minutes=kwargs.get("wait_time", 1)):
-    #             break
-    #
-    #         sleep(1)
+    elif stats == "precipitation":
+        city_stats_filtered = city_stats.get("precipitation_statistics", {})
+    else:
+        city_stats_filtered = {"error": "not valid statistics"}
+
+    return city_stats_filtered
+

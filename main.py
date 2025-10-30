@@ -1,7 +1,12 @@
+import os
+if not os.path.exists('logs'):
+    os.mkdir('logs')
+
 import requests
 from backend.api.service.api import create_app
 
 def main():
+
     app = create_app()
 
     print("TEST COORDINATES")

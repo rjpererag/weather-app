@@ -1,3 +1,18 @@
+.PHONY: creat_env
+create_env:
+	chmod +x create_env.sh
+	./create_env.sh
+
+.PHONE: start-app
+start-app:
+	make create_env
+	make start-docker-fresh
+
+.PHONY: stop-app
+stop-docker:
+	@echo "Stoping Docker Containers"
+	docker compose down
+
 .PHONY: start-celery
 start-celery:
 	@echo "Starting Celery server"
@@ -23,7 +38,3 @@ stop-docker-full:
 	@echo "Stoping Docker Containers and removing volumes"
 	docker compose down -v
 
-.PHONY: stop-docker
-stop-docker:
-	@echo "Stoping Docker Containers"
-	docker compose down

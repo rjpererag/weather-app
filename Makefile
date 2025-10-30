@@ -9,7 +9,7 @@ start-app:
 	make start-docker-fresh
 
 .PHONY: stop-app
-stop-docker:
+stop-app:
 	@echo "Stoping Docker Containers"
 	docker compose down
 

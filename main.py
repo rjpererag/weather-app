@@ -1,11 +1,8 @@
 import requests
+from backend.api.service.api import create_app
 
 def main():
-
-    print("TEST API")
-    test = requests.get('http://localhost:5001/test')
-    print(test.json())
-    print("-"*45)
+    app = create_app()
 
     print("TEST COORDINATES")
     coordinates = requests.get('http://localhost:5001/coordinates/madrid')
